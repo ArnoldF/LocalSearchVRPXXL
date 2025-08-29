@@ -1,11 +1,12 @@
 import java.util.*;
+import java.util.logging.Logger;
+
 import construction.ClarkeWright;
 import datastructures.Route;
 import datastructures.VRPProblem;
 import datastructures.VRPSolution;
 import datastructures.CostEvaluator;
 import localsearch.LocalSearch;
-import read_write.VRPInstanceReader;
 
 
 public class KGLS {
@@ -23,6 +24,8 @@ public class KGLS {
     private List<Map<String, Object>> runStats = new ArrayList<>();
 
     private Map<String, Object> runParameters;
+
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     // Default parameters
     private static final Map<String, Object> DEFAULT_PARAMETERS = new HashMap<>();
@@ -61,7 +64,6 @@ public class KGLS {
 
     /** Run the KGLS loop */
     public void run() {
-        System.out.println("Running KGLS (MaxTime = " + (maxRuntimeMillis / 1000) + "s)");
         startTimeMillis = System.currentTimeMillis();
 
         // Step 1: construct initial solution (Clark & Wright parallel savings)
@@ -86,19 +88,46 @@ public class KGLS {
 
             updateRunStats();
 
-            // Restart mechanism (similar to Python version)
             if ((System.currentTimeMillis() - bestSolutionTime) > maxRuntimeMillis / 5  && bestSolutionCost < lastResetValue) {
 
-                // System.out.println("Resetting solution and penalties...");
+                logger.fine("Resetting solution and penalties...");
                 lastResetValue = bestSolutionCost;
                 resetToBestSolution();
-                runParameters.put("num_perturbations", 1);
                 bestSolutionTime = System.currentTimeMillis();
             }
         }
 
-        System.out.println("KGLS finished after " + getRuntimeSeconds() + "s and " + iteration + " iterations.");
-        System.out.println("Best solution cost: " + bestSolutionCost);
+        // print solver stats
+        printStats();
+
+
+    }
+
+    private void printStats(){
+        Map<String, Double> stats = curSolution.getAllStats();
+
+        if (stats != null && !stats.isEmpty()) {
+            logger.info("=== Solution Stats ===");
+
+            // number of moves
+            logger.info("Move Count");
+            for (Map.Entry<String, Double> entry : stats.entrySet()) {
+                if (entry.getKey().startsWith("move_count")) { 
+                    String formatted = String.format("%-30s : %.0f", entry.getKey(), entry.getValue());
+                    logger.info(formatted);
+                }
+            }
+
+            // time of moves
+            logger.info("Time Distribution");
+            for (Map.Entry<String, Double> entry : stats.entrySet()) {
+                if (entry.getKey().startsWith("time_")) { 
+                    Double time_percent = entry.getValue() / (this.maxRuntimeMillis) * 100;
+                    String formatted = String.format("%-30s : %.0f", entry.getKey(), time_percent);
+                    logger.info(formatted + " %");
+                }
+            }
+        }
     }
 
     private void updateRunStats() {
@@ -108,7 +137,7 @@ public class KGLS {
             bestSolutionCost = currentCost;
             bestSolution = curSolution.copy();
             bestSolutionTime = System.currentTimeMillis();
-            //System.out.println("Iteration " + iteration + " (" + (bestSolutionTime - startTimeMillis) / 1000 + ") " + " improved solution: " + currentCost);
+            logger.info("Iteration " + iteration + " (" + (bestSolutionTime - startTimeMillis) / 1000 + "s): " + currentCost);
         }
 
         Map<String, Object> stats = new HashMap<>();
@@ -135,42 +164,13 @@ public class KGLS {
         if (bestSolution == null) return;
     
         // Save stats from current solution
-        //Map<String, Object> stats = curSolution.getSolutionStats();
+        Map<String, Double> stats = new HashMap<>(curSolution.getAllStats());
     
         // Reset current solution to the best known one
         curSolution = bestSolution.copy();
-        //curSolution.setSolutionStats(stats);
+        curSolution.setStats(stats);
     
         // Reset penalties in evaluator
         costEvaluator.resetPenalties();
-    }
-
-    // ==== MAIN for console run ====
-    public static void main(String[] args) {
-        if (args.length < 2) {
-            System.err.println("Usage: java KGLS <instance-file> <max-time-seconds>");
-            System.exit(1);
-        }
-
-        String instancePath = "src/X-n139-k10.vrp"; //args[0];
-        long maxTime = 600; //Long.parseLong(args[1]);
-
-        try {
-            VRPProblem problem = VRPInstanceReader.readVRPInstance(instancePath);
-
-            // Example: user-provided parameters
-            Map<String, Object> userParams = new HashMap<>();
-            //userParams.put("moves", Arrays.asList("segment_move", "cross_exchange"));
-            userParams.put("num_perturbations", 3);
-
-            KGLS solver = new KGLS(problem, maxTime, userParams);
-
-            solver.run();
-
-            // Optionally: save best solution
-            // solver.getBestSolution().writeToFile("best_solution.txt");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

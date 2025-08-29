@@ -2,10 +2,20 @@ import datastructures.VRPProblem;
 import read_write.VRPInstanceReader;
 
 import java.util.*;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
+
+
+// Custom formatter that prints only the message
+class PlainMessageFormatter extends Formatter {
+    @Override
+    public String format(LogRecord record) {
+        return record.getMessage() + System.lineSeparator();
+    }
+}
 
 
 public class Main {
@@ -18,11 +28,15 @@ public class Main {
             System.exit(1);
         }
 
-        Logger rootLogger = Logger.getLogger("");
-        Handler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.INFO);
-        rootLogger.addHandler(consoleHandler);
-        rootLogger.setLevel(Level.INFO);
+        try{
+            Logger rootLogger = Logger.getLogger("");
+            FileHandler fileHandler = new FileHandler("kgls_run.log", true);
+            fileHandler.setFormatter(new PlainMessageFormatter());
+            rootLogger.addHandler(fileHandler);
+            rootLogger.setLevel(Level.INFO);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String instancePath = args[0];
         long maxTime = Long.parseLong(args[1]);
@@ -53,16 +67,21 @@ public class Main {
             }
         }
 
-            try {
-                VRPProblem problem = VRPInstanceReader.readVRPInstance(instancePath);
 
-                KGLS solver = new KGLS(problem, maxTime, userParams);
-                solver.run();
+        String fileNameWithExt = instancePath.substring(instancePath.lastIndexOf("/") + 1); 
+        int dotIndex = fileNameWithExt.lastIndexOf(".");
+        String fileNameWithoutExt = (dotIndex == -1) ? fileNameWithExt : fileNameWithExt.substring(0, dotIndex);
 
-                // Optionally: save best solution
-                // solver.getBestSolution().writeToFile("best_solution.txt");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+        logger.info("Solving " + fileNameWithoutExt + " with KGLS (MaxTime = " + (maxTime) + "s)");
+
+        try {
+            VRPProblem problem = VRPInstanceReader.readVRPInstance(instancePath);
+
+            KGLS solver = new KGLS(problem, maxTime, userParams);
+            solver.run(); 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

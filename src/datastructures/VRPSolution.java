@@ -224,8 +224,8 @@ public class VRPSolution {
         solutionStats.put(key, solutionStats.getOrDefault(key, 0.0) + value);
     }
 
-    public double getStat(String key) {
-        return solutionStats.getOrDefault(key, 0.0);
+    public void setStats(Map<String, Double> newStats) {
+        solutionStats = new HashMap<>(newStats);
     }
 
     public void setStat(String key, double value) {

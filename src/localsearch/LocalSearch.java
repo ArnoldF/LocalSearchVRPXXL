@@ -34,7 +34,7 @@ public class LocalSearch {
         }
 
         long end = System.currentTimeMillis();
-        solution.addStat("time_lin_kernighan", (end - start) / 1000.0);
+        solution.addStat("time_lin_kernighan", (end - start));
     }
 
     // -------------------------------
@@ -81,7 +81,7 @@ public class LocalSearch {
         };
 
         long end = System.currentTimeMillis();
-        solution.addStat("time_" + operatorName, (end - start) / 1000.0);
+        solution.addStat("time_" + operatorName, (end - start));
 
         if (candidateMoves != null && !candidateMoves.isEmpty()) {
             logger.fine("Found " + candidateMoves.size() + " improving moves, current solution value: "
@@ -97,7 +97,6 @@ public class LocalSearch {
 
                 move.execute(solution);
                 solution.addStat("move_count_" + operatorName, 1.0);
-                //solution.plot(costEvaluator.getSolutionCosts(solution, true));
 
                 double newCosts = costEvaluator.getSolutionCosts(solution, false);
                 double improvement = oldCosts - newCosts;

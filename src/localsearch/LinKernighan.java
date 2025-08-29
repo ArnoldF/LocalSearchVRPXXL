@@ -318,8 +318,7 @@ public class LinKernighan {
                     assert Math.abs(improvement - bestMove.getImprovement()) < 1e-6;
 
                     solution.validate();
-                    //solution.getSolutionStats().put("moves_lk",
-                    //        solution.getSolutionStats().getOrDefault("moves_lk", 0) + 1);
+                    solution.addStat("move_count_linKernighan", 1.0);
 
                     moveFound = true;
                     break;
