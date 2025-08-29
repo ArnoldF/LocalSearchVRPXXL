@@ -1,7 +1,7 @@
 # Guided Local Search for Vehicle Routing Problems
 
-This repository contains the Java implementation of the [Knowledge Guided Local Search]([https://www.sciencedirect.com/science/article/abs/pii/S0305054819300024]) (KGLS)
-and its extension to [very large instances]([https://www.sciencedirect.com/science/article/abs/pii/S0305054819300668])
+This repository contains the Java implementation of the [Knowledge Guided Local Search](https://www.sciencedirect.com/science/article/abs/pii/S0305054819300024) (KGLS)
+and its extension to [very large instances](https://www.sciencedirect.com/science/article/abs/pii/S0305054819300668)
 
 KGLS (a variation of Guided Local Search) is a powerful heuristic for solving the Vehicle Routing Problem (VRP) and its variants.
 The algorithm iteratively searches for small, improving changes to the current solution (local search moves). 
@@ -18,14 +18,14 @@ to escape local optima and explore new parts of the solution space.
 The compiled algorithm can be run with, for example
 
 ```bash
-java -cp bin Main instances/X-n101-k25.vrp 10
+java -cp bin Main large_instances/antwerp1.vrp 100
 ```
 
 The first parameter is the path to the instance file, and the second parameter the maximal runtime in seconds.
 Also, all parameters of KGLS (see below) can be customized by passing them as key-value pairs, e.g.
 
 ```bash
-java -cp bin Main instances/X-n101-k25.vrp 10 depth_lin_kernighan=6 num_perturbations=20
+java -cp bin Main large_instances/antwerp1.vrp 100 depth_lin_kernighan=6 num_perturbations=20
 ```
 
 All results and stats will be written to a log file.
@@ -80,3 +80,4 @@ If you have ideas for new features, optimizations, or extensions, feel free to o
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
+
